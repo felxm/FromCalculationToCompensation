@@ -64,7 +64,7 @@ def calculate_severance_tax(regular_income, severance_pay, tax_class):
     tax_on_severance = (tax_on_regular_income_plus_one_fifth - tax_on_regular_income) * 5
     return tax_on_severance
 
-def calculate_net_income(gross_income, tax_class=1, in_church=False, severance_pay=Decimal('0')):
+def calculate_net_income(gross_income, tax_class=1, in_church=False, severance_pay=Decimal('0'), soli_on_severance=True):
     """
     Calculates the net income after all deductions.
     """
@@ -89,21 +89,25 @@ def calculate_net_income(gross_income, tax_class=1, in_church=False, severance_p
 
     income_tax = calculate_income_tax(taxable_income, tax_class)
 
+    # Calculate tax on severance pay
+    severance_tax = Decimal('0')
+    if severance_pay > 0:
+        severance_tax = calculate_severance_tax(taxable_income, severance_pay, tax_class)
+
     # Calculate solidarity surcharge
     solidarity_surcharge = Decimal('0')
     freigrenze = SOLIDARITY_SURCHARGE_FREI_MARRIED if tax_class in [3, 4] else SOLIDARITY_SURCHARGE_FREI_SINGLE
-    if income_tax > freigrenze:
-        solidarity_surcharge = (income_tax * SOLIDARITY_SURCHARGE_RATE).quantize(Decimal('0.01'))
+    total_tax = income_tax
+    if soli_on_severance:
+        total_tax += severance_tax
+
+    if total_tax > freigrenze:
+        solidarity_surcharge = (total_tax * SOLIDARITY_SURCHARGE_RATE).quantize(Decimal('0.01'))
 
     # Calculate church tax
     church_tax = Decimal('0')
     if in_church:
         church_tax = (income_tax * CHURCH_TAX_RATE).quantize(Decimal('0.01'))
-
-    # Calculate tax on severance pay
-    severance_tax = Decimal('0')
-    if severance_pay > 0:
-        severance_tax = calculate_severance_tax(taxable_income, severance_pay, tax_class)
 
     # Calculate total deductions
     total_deductions = income_tax + social_security_total + solidarity_surcharge + church_tax + severance_tax
