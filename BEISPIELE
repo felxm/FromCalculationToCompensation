@@ -1,104 +1,32 @@
 Jahr:           2025
 Splitting?:     Kein Splitting
 Kirche:         Keine
-Abfindung:      100.000,00 €
+Abfindung:      200.000,00 €
 Zvst. Eink.:    0,00 €
 Progr.Eink.:     0,00 €
 -------------------------------
 Ergebnis
 Beschreibung                                                Fünftel-Regelung        Regelbesteuerung
-Einkommensteuer                                                 -8.195,00 €        -31.088,00 €
-Solidaritätszuschlag                                                 0,00 €         -1.709,84 €
+Einkommensteuer                                                -36.600,00 €        -73.088,00 €
+Solidaritätszuschlag                                            -1.981,35 €         -4.019,84 €
 Kirchensteuer                                                        0,00 €              0,00 €
-Gesamt-Steuer                                                   -8.195,00 €        -32.797,84 €
-Netto nach Steuern (ohne Berücksichtigung Sozialabgaben)         91.805,00 €         67.202,16 €
-Vorteil Fünftel-Regelung                                        24.602,84 €              0,00 €
+Gesamt-Steuer                                                  -38.581,35 €        -77.107,84 €
+Netto nach Steuern (ohne Berücksichtigung Sozialabgaben)        161.418,65 €        122.892,16 €
+Vorteil Fünftel-Regelung                                        38.526,49 €              0,00 €
 
 Berechnung
 Beschreibung                                                Fünftel-Regelung        Regelbesteuerung
-Gesamteinkünfte                                                      0,00 €        100.000,00 €
-Gesamteinkünfte incl. Progression                                    0,00 €        100.000,00 €
-Einkommensteuersatz gesamt                                          8,20 %            31,09 %
+Gesamteinkünfte                                                      0,00 €        200.000,00 €
+Gesamteinkünfte incl. Progression                                    0,00 €        200.000,00 €
+Einkommensteuersatz gesamt                                         18,30 %            36,54 %
 Weitere Einkünfte                                                    0,00 €              0,00 €
 Weitere Einkünfte incl. Progression                                  0,00 €              0,00 €
 Einkommensteuersatz sonstige Einkünfte                              0,00 %             0,00 %
 Einkommensteuer sonstige Einkünfte                                   0,00 €              0,00 €
-Einkommensteuer Fünftel-Regelung                                -8.195,00 €              0,00 €
-Einkommensteuer Gesamt                                          -8.195,00 €        -31.088,00 €
-Solidaritätszuschlag                                                 0,00 €         -1.709,84 €
+Einkommensteuer Fünftel-Regelung                               -36.600,00 €              0,00 €
+Einkommensteuer Gesamt                                         -36.600,00 €        -73.088,00 €
+Solidaritätszuschlag                                            -1.981,35 €         -4.019,84 €
 Kirchensteuer                                                        0,00 €              0,00 €
-Steuer gesamt                                                   -8.195,00 €        -32.797,84 €
-Einkommensteuersatz Einmalzahlung                                   8,20 %             0,00 %
-Einkommensteuersatz Gesamt                                          8,20 %            32,80 %
-
-
-
-
-Beispiel mit 200.000
-Ergebnis
-Beschreibung	Fünftel-Regelung	Regelbesteuerung
-Einkommensteuer	
--36.600,00	€
--73.088,00	€
-Solidaritätszuschlag	
--1.981,35	€
--4.019,84	€
-Kirchensteuer	
-0,00	€
-0,00	€
-Gesamt-Steuer	
--38.581,35	€
--77.107,84	€
-Netto nach Steuern (ohne Berücksichtigung Sozialabgaben)	
-161.418,65	€
-122.892,16	€
-Vorteil Fünftel-Regelung	
-38.526,49	€
-0,00	€
-Berechnung
-Beschreibung	Fünftel-Regelung	Regelbesteuerung
-Gesamteinkünfte	
-40.000,00	€
-200.000,00	€
-Gesamteinkünfte incl. Progression	
-40.000,00	€
-200.000,00	€
-Einkommensteuersatz gesamt	
-18,30	%
-36,54	%
-Weitere Einkünfte	
-0,00	€
-0,00	€
-Weitere Einkünfte incl. Progression	
-0,00	€
-0,00	€
-Einkommensteuersatz sonstige Einkünfte	
-0,00	%
-0,00	%
-Einkommensteuer Gesamteinkünfte	
--7.320,00	€
--73.088,00	€
-Einkommensteuer sonstige Einkünfte	
-0,00	€
-0,00	€
-Einkommensteuer Fünftel-Regelung	
--36.600,00	€
-0,00	€
-Einkommensteuer Gesamt	
--36.600,00	€
--73.088,00	€
-Solidaritätszuschlag	
--1.981,35	€
--4.019,84	€
-Kirchensteuer	
-0,00	€
-0,00	€
-Steuer gesamt	
--38.581,35	€
--77.107,84	€
-Einkommensteuersatz Einmalzahlung	
-18,30	%
-0,00	%
-Einkommensteuersatz Gesamt	
-19,29	%
-38,55	%
+Steuer gesamt                                                  -38.581,35 €        -77.107,84 €
+Einkommensteuersatz Einmalzahlung                                  18,30 %             0,00 %
+Einkommensteuersatz Gesamt                                         19,29 %            38,55 %

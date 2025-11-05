@@ -42,6 +42,26 @@ def _berechne_einkommensteuer_basis(zu_versteuerndes_einkommen, splitting):
 
     return steuer
 
+def _berechne_soli(einkommensteuer, splitting):
+    """
+    Berechnet den Solidaritätszuschlag unter Berücksichtigung der Freigrenze und Milderungszone.
+    """
+    freigrenze = Decimal('39900') if splitting else Decimal('19950')
+
+    if einkommensteuer <= freigrenze:
+        return Decimal('0')
+
+    # Milderungszone
+    # Der Soli darf 11,9 % des Unterschiedsbetrags zwischen Lohnsteuer und Freigrenze nicht übersteigen.
+    soli_milderung = (einkommensteuer - freigrenze) * Decimal('0.119')
+
+    # Voller Soli
+    soli_voll = einkommensteuer * SOLIDARITATSZUSCHLAG_SATZ
+
+    # Der niedrigere der beiden Werte ist der anzusetzende Soli
+    return min(soli_milderung, soli_voll).quantize(Decimal('0.01'))
+
+
 def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
     """
     Berechnet die Steuerlast sowohl nach der Regelbesteuerung als auch nach der Fünftelregelung.
@@ -56,10 +76,7 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
 
     regel_einkommensteuer = _berechne_einkommensteuer_basis(regel_gesamteinkuenfte_prog, splitting)
 
-    regel_soli = (regel_einkommensteuer * SOLIDARITATSZUSCHLAG_SATZ).quantize(Decimal('0.01'))
-    # Vereinfachung: Freigrenze wird ignoriert, wie es im Beispiel erscheint
-    if regel_einkommensteuer < 18130: # Grobe Annahme für Freigrenze 2025 Single
-         regel_soli = Decimal('0')
+    regel_soli = _berechne_soli(regel_einkommensteuer, splitting)
 
     regel_kirchensteuer = Decimal('0')
     if kirche:
@@ -78,9 +95,7 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
     fuenftel_einkommensteuer_abfindung = (est_auf_zvst_eink_plus_fuenftel - est_auf_zvst_eink) * 5
     fuenftel_einkommensteuer_gesamt = est_auf_zvst_eink + fuenftel_einkommensteuer_abfindung
 
-    fuenftel_soli = (fuenftel_einkommensteuer_gesamt * SOLIDARITATSZUSCHLAG_SATZ).quantize(Decimal('0.01'))
-    if fuenftel_einkommensteuer_gesamt < 18130: # Grobe Annahme
-        fuenftel_soli = Decimal('0')
+    fuenftel_soli = _berechne_soli(fuenftel_einkommensteuer_gesamt, splitting)
 
     fuenftel_kirchensteuer = Decimal('0')
     if kirche:
