@@ -86,11 +86,11 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
     regel_netto = regel_gesamteinkuenfte - regel_gesamt_steuer
 
     # --- Fünftel-Regelung ---
-    fuenftel_gesamteinkuenfte = zvst_eink
-    fuenftel_gesamteinkuenfte_prog = fuenftel_gesamteinkuenfte + progr_eink
+    fuenftel_berechnungsgrundlage = zvst_eink + (abfindung / 5)
+    fuenftel_berechnungsgrundlage_prog = fuenftel_berechnungsgrundlage + progr_eink
 
-    est_auf_zvst_eink = _berechne_einkommensteuer_basis(fuenftel_gesamteinkuenfte_prog, splitting)
-    est_auf_zvst_eink_plus_fuenftel = _berechne_einkommensteuer_basis(fuenftel_gesamteinkuenfte_prog + (abfindung / 5), splitting)
+    est_auf_zvst_eink = _berechne_einkommensteuer_basis(zvst_eink + progr_eink, splitting)
+    est_auf_zvst_eink_plus_fuenftel = _berechne_einkommensteuer_basis(fuenftel_berechnungsgrundlage_prog, splitting)
 
     fuenftel_einkommensteuer_abfindung = (est_auf_zvst_eink_plus_fuenftel - est_auf_zvst_eink) * 5
     fuenftel_einkommensteuer_gesamt = est_auf_zvst_eink + fuenftel_einkommensteuer_abfindung
@@ -102,13 +102,18 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
         fuenftel_kirchensteuer = (fuenftel_einkommensteuer_gesamt * KIRCHENSTEUER_SATZ).quantize(Decimal('0.01'))
 
     fuenftel_gesamt_steuer = fuenftel_einkommensteuer_gesamt + fuenftel_soli + fuenftel_kirchensteuer
-    fuenftel_netto = fuenftel_gesamteinkuenfte + abfindung - fuenftel_gesamt_steuer
+    fuenftel_netto = zvst_eink + abfindung - fuenftel_gesamt_steuer
 
     vorteil_fuenftel = regel_gesamt_steuer - fuenftel_gesamt_steuer
 
-    fuenftel_steuersatz_gesamt = (fuenftel_gesamt_steuer / (fuenftel_gesamteinkuenfte + abfindung) * 100) if (fuenftel_gesamteinkuenfte + abfindung) > 0 else Decimal('0')
+    # Angepasste Werte für die Ausgabe
+    fuenftel_angezeigte_gesamteinkuenfte = zvst_eink + (abfindung / 5)
+    fuenftel_angezeigte_gesamteinkuenfte_prog = fuenftel_angezeigte_gesamteinkuenfte + progr_eink
+
+
+    fuenftel_steuersatz_gesamt = (fuenftel_gesamt_steuer / (zvst_eink + abfindung) * 100) if (zvst_eink + abfindung) > 0 else Decimal('0')
     regel_steuersatz_gesamt = (regel_gesamt_steuer / regel_gesamteinkuenfte * 100) if regel_gesamteinkuenfte > 0 else Decimal('0')
-    fuenftel_steuersatz_einkommen = (fuenftel_einkommensteuer_gesamt / (fuenftel_gesamteinkuenfte + abfindung) * 100) if (fuenftel_gesamteinkuenfte + abfindung) > 0 else Decimal('0')
+    fuenftel_steuersatz_einkommen = (fuenftel_einkommensteuer_gesamt / (zvst_eink + abfindung) * 100) if (zvst_eink + abfindung) > 0 else Decimal('0')
     regel_steuersatz_einkommen = (regel_einkommensteuer / regel_gesamteinkuenfte * 100) if regel_gesamteinkuenfte > 0 else Decimal('0')
 
 
@@ -117,7 +122,7 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
             "einkommensteuer": -fuenftel_einkommensteuer_gesamt, "soli": -fuenftel_soli, "kirchensteuer": -fuenftel_kirchensteuer,
             "gesamt_steuer": -fuenftel_gesamt_steuer, "netto": fuenftel_netto, "vorteil": vorteil_fuenftel,
             "calc": {
-                "gesamteinkuenfte": fuenftel_gesamteinkuenfte, "gesamteinkuenfte_prog": fuenftel_gesamteinkuenfte_prog,
+                "gesamteinkuenfte": fuenftel_angezeigte_gesamteinkuenfte, "gesamteinkuenfte_prog": fuenftel_angezeigte_gesamteinkuenfte_prog,
                 "einkommensteuersatz_gesamt": fuenftel_steuersatz_einkommen, "weitere_einkuenfte": Decimal('0'),
                 "weitere_einkuenfte_prog": Decimal('0'), "einkommensteuersatz_sonstige": Decimal('0'),
                 "einkommensteuer_sonstige": Decimal('0'), "einkommensteuer_fuenftel_regelung": -fuenftel_einkommensteuer_abfindung,
