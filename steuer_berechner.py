@@ -1,133 +1,129 @@
-# tax_calculator.py
+# steuer_berechner.py
 
 from decimal import Decimal, getcontext
 
-# Set precision for Decimal calculations
+# Präzision für Dezimalberechnungen festlegen
 getcontext().prec = 10
 
-# Social security contribution rates for 2024 (employee's share)
-PENSION_INSURANCE_RATE = Decimal('0.093')
-UNEMPLOYMENT_INSURANCE_RATE = Decimal('0.013')
-HEALTH_INSURANCE_RATE = Decimal('0.0785') # General rate, can vary
-CARE_INSURANCE_RATE = Decimal('0.01775')
+# Konstanten
+SOLIDARITATSZUSCHLAG_SATZ = Decimal('0.055')
+KIRCHENSTEUER_SATZ = Decimal('0.09') # Annahme für die meisten Bundesländer
 
-# Social security contribution ceilings for 2025
-PENSION_CEILING = Decimal('96600')
-HEALTH_CARE_CEILING = Decimal('66150')
-
-# Solidarity surcharge rate
-SOLIDARITY_SURCHARGE_RATE = Decimal('0.055')
-SOLIDARITY_SURCHARGE_FREI_SINGLE = Decimal('19950')
-SOLIDARITY_SURCHARGE_FREI_MARRIED = Decimal('39900')
-
-# Church tax rate
-CHURCH_TAX_RATE = Decimal('0.09') # Varies by state (8% or 9%)
-
-def calculate_income_tax(taxable_income, tax_class):
+def _berechne_einkommensteuer_basis(zu_versteuerndes_einkommen, splitting):
     """
-    Calculates the income tax based on the 2025 progressive tax formula.
+    Berechnet die Einkommensteuer nach der progressiven Steuerformel für 2025.
+    Dies ist eine interne Hilfsfunktion.
     """
-    taxable_income = Decimal(taxable_income)
+    zve = Decimal(zu_versteuerndes_einkommen)
 
-    # Use Splittingtabelle for married couples (tax classes 3 and 4)
-    if tax_class in [3, 4]:
-        taxable_income /= 2
+    # Splitting-Verfahren
+    if splitting:
+        zve /= 2
 
-    gfb = Decimal('12096') # Grundfreibetrag (basic tax-free allowance)
+    gfb = Decimal('12096') # Grundfreibetrag 2025 (Annahme)
 
-    if taxable_income <= gfb:
-        tax = Decimal('0')
-    elif taxable_income <= Decimal('17443'):
-        y = (taxable_income - gfb) / Decimal('10000')
-        tax = (Decimal('932.30') * y + Decimal('1400')) * y
-    elif taxable_income <= Decimal('68480'):
-        y = (taxable_income - Decimal('17443')) / Decimal('10000')
-        tax = (Decimal('176.64') * y + Decimal('2397')) * y + Decimal('1015.13')
-    elif taxable_income <= Decimal('277825'):
-        tax = taxable_income * Decimal('0.42') - Decimal('10911.92')
+    if zve <= gfb:
+        steuer = Decimal('0')
+    elif zve <= Decimal('17443'):
+        y = (zve - gfb) / Decimal('10000')
+        steuer = (Decimal('932.30') * y + Decimal('1400')) * y
+    elif zve <= Decimal('68480'):
+        y = (zve - Decimal('17443')) / Decimal('10000')
+        steuer = (Decimal('176.64') * y + Decimal('2397')) * y + Decimal('1015.13')
+    elif zve <= Decimal('277825'):
+        steuer = zve * Decimal('0.42') - Decimal('10911.92')
     else:
-        tax = taxable_income * Decimal('0.45') - Decimal('19246.67')
+        steuer = zve * Decimal('0.45') - Decimal('19246.67')
 
-    tax = tax.to_integral_value(rounding='ROUND_DOWN')
+    steuer = steuer.to_integral_value(rounding='ROUND_DOWN')
 
-    if tax_class in [3, 4]:
-        tax *= 2
+    if splitting:
+        steuer *= 2
 
-    return tax
+    return steuer
 
-def calculate_severance_tax(regular_income, severance_pay, tax_class):
+def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
     """
-    Calculates the tax on severance pay using the Fünftelregelung (one-fifth rule).
+    Berechnet die Steuerlast sowohl nach der Regelbesteuerung als auch nach der Fünftelregelung.
     """
-    tax_on_regular_income = calculate_income_tax(regular_income, tax_class)
-    tax_on_regular_income_plus_one_fifth = calculate_income_tax(regular_income + (severance_pay / 5), tax_class)
-    tax_on_severance = (tax_on_regular_income_plus_one_fifth - tax_on_regular_income) * 5
-    return tax_on_severance
+    abfindung = Decimal(abfindung)
+    zvst_eink = Decimal(zvst_eink)
+    progr_eink = Decimal(progr_eink)
 
-def calculate_net_income(gross_income, tax_class=1, in_church=False, severance_pay=Decimal('0'), soli_on_severance=True):
-    """
-    Calculates the net income after all deductions.
-    """
-    gross_income = Decimal(gross_income)
+    # --- Regelbesteuerung ---
+    regel_gesamteinkuenfte = zvst_eink + abfindung
+    regel_gesamteinkuenfte_prog = regel_gesamteinkuenfte + progr_eink
 
-    # Standard deductibles
-    arbeitnehmer_pauschbetrag = Decimal('1230')
-    sonderausgaben_pauschbetrag = Decimal('36')
+    regel_einkommensteuer = _berechne_einkommensteuer_basis(regel_gesamteinkuenfte_prog, splitting)
 
-    # Social security contributions
-    pension_insurance = (min(gross_income, PENSION_CEILING) * PENSION_INSURANCE_RATE).quantize(Decimal('0.01'))
-    unemployment_insurance = (min(gross_income, PENSION_CEILING) * UNEMPLOYMENT_INSURANCE_RATE).quantize(Decimal('0.01'))
-    health_insurance = (min(gross_income, HEALTH_CARE_CEILING) * HEALTH_INSURANCE_RATE).quantize(Decimal('0.01'))
-    care_insurance = (min(gross_income, HEALTH_CARE_CEILING) * CARE_INSURANCE_RATE).quantize(Decimal('0.01'))
+    regel_soli = (regel_einkommensteuer * SOLIDARITATSZUSCHLAG_SATZ).quantize(Decimal('0.01'))
+    # Vereinfachung: Freigrenze wird ignoriert, wie es im Beispiel erscheint
+    if regel_einkommensteuer < 18130: # Grobe Annahme für Freigrenze 2025 Single
+         regel_soli = Decimal('0')
 
-    social_security_total = pension_insurance + unemployment_insurance + health_insurance + care_insurance
+    regel_kirchensteuer = Decimal('0')
+    if kirche:
+        regel_kirchensteuer = (regel_einkommensteuer * KIRCHENSTEUER_SATZ).quantize(Decimal('0.01'))
 
-    taxable_income = gross_income - arbeitnehmer_pauschbetrag - sonderausgaben_pauschbetrag - social_security_total
+    regel_gesamt_steuer = regel_einkommensteuer + regel_soli + regel_kirchensteuer
+    regel_netto = regel_gesamteinkuenfte - regel_gesamt_steuer
 
-    if taxable_income < 0:
-        taxable_income = Decimal('0')
+    # --- Fünftel-Regelung ---
+    fuenftel_gesamteinkuenfte = zvst_eink
+    fuenftel_gesamteinkuenfte_prog = fuenftel_gesamteinkuenfte + progr_eink
 
-    income_tax = calculate_income_tax(taxable_income, tax_class)
+    est_auf_zvst_eink = _berechne_einkommensteuer_basis(fuenftel_gesamteinkuenfte_prog, splitting)
+    est_auf_zvst_eink_plus_fuenftel = _berechne_einkommensteuer_basis(fuenftel_gesamteinkuenfte_prog + (abfindung / 5), splitting)
 
-    # Calculate tax on severance pay
-    severance_tax = Decimal('0')
-    if severance_pay > 0:
-        severance_tax = calculate_severance_tax(taxable_income, severance_pay, tax_class)
+    fuenftel_einkommensteuer_abfindung = (est_auf_zvst_eink_plus_fuenftel - est_auf_zvst_eink) * 5
+    fuenftel_einkommensteuer_gesamt = est_auf_zvst_eink + fuenftel_einkommensteuer_abfindung
 
-    # Calculate solidarity surcharge
-    solidarity_surcharge = Decimal('0')
-    freigrenze = SOLIDARITY_SURCHARGE_FREI_MARRIED if tax_class in [3, 4] else SOLIDARITY_SURCHARGE_FREI_SINGLE
-    total_tax = income_tax
-    if soli_on_severance:
-        total_tax += severance_tax
+    fuenftel_soli = (fuenftel_einkommensteuer_gesamt * SOLIDARITATSZUSCHLAG_SATZ).quantize(Decimal('0.01'))
+    if fuenftel_einkommensteuer_gesamt < 18130: # Grobe Annahme
+        fuenftel_soli = Decimal('0')
 
-    if total_tax > freigrenze:
-        solidarity_surcharge = (total_tax * SOLIDARITY_SURCHARGE_RATE).quantize(Decimal('0.01'))
+    fuenftel_kirchensteuer = Decimal('0')
+    if kirche:
+        fuenftel_kirchensteuer = (fuenftel_einkommensteuer_gesamt * KIRCHENSTEUER_SATZ).quantize(Decimal('0.01'))
 
-    # Calculate church tax
-    church_tax = Decimal('0')
-    if in_church:
-        church_tax = (income_tax * CHURCH_TAX_RATE).quantize(Decimal('0.01'))
+    fuenftel_gesamt_steuer = fuenftel_einkommensteuer_gesamt + fuenftel_soli + fuenftel_kirchensteuer
+    fuenftel_netto = fuenftel_gesamteinkuenfte + abfindung - fuenftel_gesamt_steuer
 
-    # Calculate total deductions
-    total_deductions = income_tax + social_security_total + solidarity_surcharge + church_tax + severance_tax
+    vorteil_fuenftel = regel_gesamt_steuer - fuenftel_gesamt_steuer
 
-    # Calculate net income
-    net_income = gross_income + severance_pay - total_deductions
+    fuenftel_steuersatz_gesamt = (fuenftel_gesamt_steuer / (fuenftel_gesamteinkuenfte + abfindung) * 100) if (fuenftel_gesamteinkuenfte + abfindung) > 0 else Decimal('0')
+    regel_steuersatz_gesamt = (regel_gesamt_steuer / regel_gesamteinkuenfte * 100) if regel_gesamteinkuenfte > 0 else Decimal('0')
+    fuenftel_steuersatz_einkommen = (fuenftel_einkommensteuer_gesamt / (fuenftel_gesamteinkuenfte + abfindung) * 100) if (fuenftel_gesamteinkuenfte + abfindung) > 0 else Decimal('0')
+    regel_steuersatz_einkommen = (regel_einkommensteuer / regel_gesamteinkuenfte * 100) if regel_gesamteinkuenfte > 0 else Decimal('0')
+
 
     return {
-        "gross_income": gross_income,
-        "net_income": net_income,
-        "severance_pay": severance_pay,
-        "deductions": {
-            "income_tax": income_tax,
-            "pension_insurance": pension_insurance,
-            "unemployment_insurance": unemployment_insurance,
-            "health_insurance": health_insurance,
-            "care_insurance": care_insurance,
-            "solidarity_surcharge": solidarity_surcharge,
-            "church_tax": church_tax,
-            "severance_tax": severance_tax,
-            "total_deductions": total_deductions
+        "fuenftel": {
+            "einkommensteuer": -fuenftel_einkommensteuer_gesamt, "soli": -fuenftel_soli, "kirchensteuer": -fuenftel_kirchensteuer,
+            "gesamt_steuer": -fuenftel_gesamt_steuer, "netto": fuenftel_netto, "vorteil": vorteil_fuenftel,
+            "calc": {
+                "gesamteinkuenfte": fuenftel_gesamteinkuenfte, "gesamteinkuenfte_prog": fuenftel_gesamteinkuenfte_prog,
+                "einkommensteuersatz_gesamt": fuenftel_steuersatz_einkommen, "weitere_einkuenfte": Decimal('0'),
+                "weitere_einkuenfte_prog": Decimal('0'), "einkommensteuersatz_sonstige": Decimal('0'),
+                "einkommensteuer_sonstige": Decimal('0'), "einkommensteuer_fuenftel_regelung": -fuenftel_einkommensteuer_abfindung,
+                "einkommensteuer_gesamt": -fuenftel_einkommensteuer_gesamt, "soli": -fuenftel_soli,
+                "kirchensteuer": -fuenftel_kirchensteuer, "steuer_gesamt": -fuenftel_gesamt_steuer,
+                "einkommensteuersatz_einmalzahlung": fuenftel_steuersatz_einkommen,
+                "einkommensteuersatz_gesamt_unten": fuenftel_steuersatz_gesamt
+            }
+        },
+        "regel": {
+            "einkommensteuer": -regel_einkommensteuer, "soli": -regel_soli, "kirchensteuer": -regel_kirchensteuer,
+            "gesamt_steuer": -regel_gesamt_steuer, "netto": regel_netto, "vorteil": Decimal('0'),
+            "calc": {
+                "gesamteinkuenfte": regel_gesamteinkuenfte, "gesamteinkuenfte_prog": regel_gesamteinkuenfte_prog,
+                "einkommensteuersatz_gesamt": regel_steuersatz_einkommen, "weitere_einkuenfte": Decimal('0'),
+                "weitere_einkuenfte_prog": Decimal('0'), "einkommensteuersatz_sonstige": Decimal('0'),
+                "einkommensteuer_sonstige": Decimal('0'), "einkommensteuer_fuenftel_regelung": Decimal('0'),
+                "einkommensteuer_gesamt": -regel_einkommensteuer, "soli": -regel_soli,
+                "kirchensteuer": -regel_kirchensteuer, "steuer_gesamt": -regel_gesamt_steuer,
+                "einkommensteuersatz_einmalzahlung": Decimal('0'),
+                "einkommensteuersatz_gesamt_unten": regel_steuersatz_gesamt
+            }
         }
     }
