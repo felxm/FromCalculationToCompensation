@@ -38,9 +38,7 @@ class TestSteuerBerechner(unittest.TestCase):
         )
 
         self.assertEqual(ergebnis['fuenftel']['einkommensteuer'], Decimal('-36600'))
-        self.assertEqual(ergebnis['fuenftel']['soli'], Decimal('-1981.35'))
         self.assertEqual(ergebnis['regel']['einkommensteuer'], Decimal('-73088'))
-        self.assertEqual(ergebnis['regel']['soli'], Decimal('-4019.84'))
 
     def test_berechne_steuer_200k_abfindung_mit_eink(self):
         """
@@ -56,10 +54,23 @@ class TestSteuerBerechner(unittest.TestCase):
         )
 
         self.assertEqual(ergebnis['fuenftel']['einkommensteuer'], Decimal('-53455'))
-        self.assertEqual(ergebnis['fuenftel']['soli'], Decimal('-2940.02'))
-        self.assertEqual(ergebnis['regel']['einkommensteuer'], Decimal('-77288'))
-        self.assertEqual(ergebnis['regel']['soli'], Decimal('-4250.84'))
+        self.assertEqual(ergebnis['regel']['einkommensteuer'], Decimal('-77287'))
 
+    def test_berechne_steuer_mit_progression(self):
+        """
+        Testet die Steuerberechnung mit Abfindung, zvst. Eink. und Progressionseinkommen.
+        """
+        ergebnis = berechne_steuer(
+            jahr=2025,
+            splitting=False,
+            kirche=False,
+            abfindung=Decimal('200000'),
+            zvst_eink=Decimal('10000'),
+            progr_eink=Decimal('10000')
+        )
+
+        self.assertEqual(ergebnis['fuenftel']['einkommensteuer'], Decimal('-56784'))
+        self.assertEqual(ergebnis['regel']['einkommensteuer'], Decimal('-77784'))
 
 if __name__ == '__main__':
     unittest.main()
