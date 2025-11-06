@@ -1,6 +1,7 @@
 # Steuer-Berechner für Abfindungen
 
 Ein Tool zur Berechnung der Lohnsteuer für Abfindungen unter Berücksichtigung der Fünftel-Regelung im Vergleich zur Regelbesteuerung.
+Dies ist keine Steuerberatung, alle Angaben ohne Gewähr.
 
 ## Features
 
