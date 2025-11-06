@@ -110,11 +110,14 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
     fuenftel_angezeigte_gesamteinkuenfte = zvst_eink + (abfindung / 5)
     fuenftel_angezeigte_gesamteinkuenfte_prog = fuenftel_angezeigte_gesamteinkuenfte + progr_eink
 
-
-    fuenftel_steuersatz_gesamt = (fuenftel_gesamt_steuer / (zvst_eink + abfindung) * 100) if (zvst_eink + abfindung) > 0 else Decimal('0')
-    regel_steuersatz_gesamt = (regel_gesamt_steuer / regel_gesamteinkuenfte * 100) if regel_gesamteinkuenfte > 0 else Decimal('0')
-    fuenftel_steuersatz_einkommen = (fuenftel_einkommensteuer_gesamt / (zvst_eink + abfindung) * 100) if (zvst_eink + abfindung) > 0 else Decimal('0')
+    # Kennzahlen
     regel_steuersatz_einkommen = (regel_einkommensteuer / regel_gesamteinkuenfte * 100) if regel_gesamteinkuenfte > 0 else Decimal('0')
+    regel_steuersatz_gesamt = (regel_gesamt_steuer / regel_gesamteinkuenfte * 100) if regel_gesamteinkuenfte > 0 else Decimal('0')
+
+    # Angepasste Kennzahl-Berechnung für Fünftel-Regelung zur Übereinstimmung mit Vorlage
+    fuenftel_steuersatz_einkommen_gesamt = (fuenftel_einkommensteuer_abfindung / abfindung * 100) if abfindung > 0 else Decimal('0')
+    fuenftel_steuersatz_einmalzahlung = fuenftel_steuersatz_einkommen_gesamt
+    fuenftel_steuersatz_gesamt_unten = (fuenftel_gesamt_steuer / (zvst_eink + abfindung) * 100) if (zvst_eink + abfindung) > 0 else Decimal('0')
 
 
     return {
@@ -123,13 +126,13 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
             "gesamt_steuer": -fuenftel_gesamt_steuer, "netto": fuenftel_netto, "vorteil": vorteil_fuenftel,
             "calc": {
                 "gesamteinkuenfte": fuenftel_angezeigte_gesamteinkuenfte, "gesamteinkuenfte_prog": fuenftel_angezeigte_gesamteinkuenfte_prog,
-                "einkommensteuersatz_gesamt": fuenftel_steuersatz_einkommen, "weitere_einkuenfte": Decimal('0'),
-                "weitere_einkuenfte_prog": Decimal('0'), "einkommensteuersatz_sonstige": Decimal('0'),
-                "einkommensteuer_sonstige": Decimal('0'), "einkommensteuer_fuenftel_regelung": -fuenftel_einkommensteuer_abfindung,
+                "einkommensteuersatz_gesamt": fuenftel_steuersatz_einkommen_gesamt, "weitere_einkuenfte": zvst_eink,
+                "weitere_einkuenfte_prog": zvst_eink + progr_eink, "einkommensteuersatz_sonstige": Decimal('0'),
+                "einkommensteuer_sonstige": -est_auf_zvst_eink, "einkommensteuer_fuenftel_regelung": -fuenftel_einkommensteuer_abfindung,
                 "einkommensteuer_gesamt": -fuenftel_einkommensteuer_gesamt, "soli": -fuenftel_soli,
                 "kirchensteuer": -fuenftel_kirchensteuer, "steuer_gesamt": -fuenftel_gesamt_steuer,
-                "einkommensteuersatz_einmalzahlung": fuenftel_steuersatz_einkommen,
-                "einkommensteuersatz_gesamt_unten": fuenftel_steuersatz_gesamt
+                "einkommensteuersatz_einmalzahlung": fuenftel_steuersatz_einmalzahlung,
+                "einkommensteuersatz_gesamt_unten": fuenftel_steuersatz_gesamt_unten
             }
         },
         "regel": {
@@ -137,8 +140,8 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
             "gesamt_steuer": -regel_gesamt_steuer, "netto": regel_netto, "vorteil": Decimal('0'),
             "calc": {
                 "gesamteinkuenfte": regel_gesamteinkuenfte, "gesamteinkuenfte_prog": regel_gesamteinkuenfte_prog,
-                "einkommensteuersatz_gesamt": regel_steuersatz_einkommen, "weitere_einkuenfte": Decimal('0'),
-                "weitere_einkuenfte_prog": Decimal('0'), "einkommensteuersatz_sonstige": Decimal('0'),
+                "einkommensteuersatz_gesamt": regel_steuersatz_einkommen, "weitere_einkuenfte": zvst_eink,
+                "weitere_einkuenfte_prog": zvst_eink + progr_eink, "einkommensteuersatz_sonstige": Decimal('0'),
                 "einkommensteuer_sonstige": Decimal('0'), "einkommensteuer_fuenftel_regelung": Decimal('0'),
                 "einkommensteuer_gesamt": -regel_einkommensteuer, "soli": -regel_soli,
                 "kirchensteuer": -regel_kirchensteuer, "steuer_gesamt": -regel_gesamt_steuer,
