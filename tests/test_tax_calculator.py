@@ -71,6 +71,8 @@ class TestSteuerBerechner(unittest.TestCase):
 
         self.assertEqual(ergebnis['fuenftel']['einkommensteuer'], Decimal('-56784'))
         self.assertEqual(ergebnis['regel']['einkommensteuer'], Decimal('-77784'))
+        self.assertEqual(ergebnis['fuenftel']['netto'], Decimal('160092.88'))
+        self.assertEqual(ergebnis['regel']['netto'], Decimal('137937.88'))
 
 if __name__ == '__main__':
     unittest.main()

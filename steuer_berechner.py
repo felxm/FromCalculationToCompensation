@@ -83,7 +83,7 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
     regel_soli = _berechne_soli(regel_einkommensteuer, splitting)
     regel_kirchensteuer = (regel_einkommensteuer * KIRCHENSTEUER_SATZ).quantize(Decimal('0.01')) if kirche else Decimal('0')
     regel_gesamt_steuer = regel_einkommensteuer + regel_soli + regel_kirchensteuer
-    regel_netto = regel_gesamteinkuenfte - regel_gesamt_steuer
+    regel_netto = regel_gesamteinkuenfte + progr_eink - regel_gesamt_steuer
 
     # --- Fünftel-Regelung ---
     est_auf_zvst_eink = _berechne_einkommensteuer_mit_progression(zvst_eink, progr_eink, splitting)
@@ -98,7 +98,7 @@ def berechne_steuer(jahr, splitting, kirche, abfindung, zvst_eink, progr_eink):
     fuenftel_soli = _berechne_soli(fuenftel_einkommensteuer_gesamt, splitting)
     fuenftel_kirchensteuer = (fuenftel_einkommensteuer_gesamt * KIRCHENSTEUER_SATZ).quantize(Decimal('0.01')) if kirche else Decimal('0')
     fuenftel_gesamt_steuer = fuenftel_einkommensteuer_gesamt + fuenftel_soli + fuenftel_kirchensteuer
-    fuenftel_netto = zvst_eink + abfindung - fuenftel_gesamt_steuer
+    fuenftel_netto = zvst_eink + abfindung + progr_eink - fuenftel_gesamt_steuer
     vorteil_fuenftel = regel_gesamt_steuer - fuenftel_gesamt_steuer
 
     # --- Kennzahlen für Ausgabe ---
